@@ -1,41 +1,649 @@
-
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Sederhana</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andrey Firmando — Network Incident Engineer | CV & Portofolio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f8ff;
-            padding: 50px;
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              cyan: '#06b6d4',
+              emerald: '#10b981',
+              indigo: '#6366f1',
+            }
+          }
         }
+      }
+    };
+  </script>
 
-        h1 {
-            color: #0077cc;
-        }
+  <style>
+    /* Latar belakang pola jaringan (Network Topology Grid) */
+    .bg-network-grid {
+      background-size: 36px 36px;
+      background-image: 
+        linear-gradient(to right, rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.06) 1px, transparent 1px);
+    }
+    .dark .bg-network-grid {
+      background-image: 
+        linear-gradient(to right, rgba(6, 182, 212, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+    }
 
-        button {
-            background-color: #0077cc;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    /* Animasi Reveal halus saat scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Animasi denyut node jaringan */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.85); opacity: 0.8; }
+      70% { transform: scale(1.8); opacity: 0; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .node-pulse::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background-color: #10b981;
+      animation: pulse-ring 2.2s infinite;
+    }
+
+    /* Gaya khusus untuk Cetak / Simpan PDF (@media print) */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm 14mm;
+      }
+      html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 10.5pt !important;
+        line-height: 1.45 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .bg-network-grid {
+        background-image: none !important;
+      }
+      .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        break-inside: avoid;
+      }
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .text-gradient-print {
+        background: none !important;
+        -webkit-text-fill-color: #0f172a !important;
+        color: #0f172a !important;
+      }
+      section {
+        margin-bottom: 14px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      a {
+        text-decoration: none !important;
+        color: #0284c7 !important;
+      }
+    }
+  </style>
 </head>
-<body>
 
-    <h1>Selamat Datang!</h1>
-    <p>Ini adalah website HTML sederhana pertama saya.</p>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 bg-network-grid min-h-screen transition-colors duration-300 selection:bg-cyan-500 selection:text-white">
 
-    <button onclick="alert('Halo! Selamat datang di website saya!')">
-        Klik Saya
-    </button>
+  <!-- Toast Notification (Pengganti alert) -->
+  <div id="toast" class="no-print fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 text-white border border-cyan-500/40 shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+    <span id="toast-message" class="text-sm font-medium">Tautan LinkedIn berhasil disalin!</span>
+  </div>
 
+  <!-- Navigasi Atas (Glassmorphism) -->
+  <header class="no-print sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800/80">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <!-- Brand / Monogram -->
+      <a href="#top" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-emerald-500 flex items-center justify-center text-white font-mono font-bold text-sm shadow-md group-hover:scale-105 transition-transform">
+          AF
+        </div>
+        <div class="hidden sm:block">
+          <p class="font-bold text-sm tracking-tight leading-none">Andrey Firmando</p>
+          <p class="text-[11px] font-mono text-cyan-600 dark:text-cyan-400 mt-0.5">NOC & Incident Engineer</p>
+        </div>
+      </a>
+
+      <!-- Menu Navigasi Cepat -->
+      <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-300">
+        <a href="#tentang" class="px-3 py-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/70 hover:text-cyan-600 dark:hover:text-cyan-400 transition">Profil</a>
+        <a href="#pengalaman" class="px-3 py-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/70 hover:text-cyan-600 dark:hover:text-cyan-400 transition">Pengalaman</a>
+        <a href="#keahlian" class="px-3 py-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/70 hover:text-cyan-600 dark:hover:text-cyan-400 transition">Keahlian</a>
+        <a href="#pendidikan" class="px-3 py-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/70 hover:text-cyan-600 dark:hover:text-cyan-400 transition">Pendidikan</a>
+        <a href="#sertifikasi" class="px-3 py-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/70 hover:text-cyan-600 dark:hover:text-cyan-400 transition">Sertifikasi</a>
+      </nav>
+
+      <!-- Aksi Kanan: Toggle Tema & Cetak PDF -->
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" aria-label="Ganti Tema Gelap/Terang" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:ring-2 hover:ring-cyan-500/50 transition">
+          <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
+        </button>
+        <button onclick="window.print()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-cyan-500/20 transition active:scale-95">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>Cetak / PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Konten Utama -->
+  <main id="top" class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10 sm:space-y-14">
+
+    <!-- HERO SECTION -->
+    <section class="glass-card relative overflow-hidden rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-10 shadow-xl">
+      <!-- Dekorasi Cahaya Fiber Optik -->
+      <div class="no-print pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-cyan-500/15 blur-3xl"></div>
+      <div class="no-print pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-indigo-500/15 blur-3xl"></div>
+
+      <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
+          <!-- Avatar Inisial Modern -->
+          <div class="relative shrink-0">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-emerald-500 p-0.5 shadow-lg">
+              <div class="w-full h-full rounded-[14px] bg-slate-900 flex flex-col items-center justify-center text-white">
+                <span class="font-mono font-extrabold text-2xl sm:text-3xl tracking-wider bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">AF</span>
+                <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400 mt-0.5">NET-ENG</span>
+              </div>
+            </div>
+            <!-- Status Aktif Dot -->
+            <span title="Tersedia untuk peluang kerja" class="no-print absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 node-pulse"></span>
+          </div>
+
+          <!-- Nama, Peran & Metadata -->
+          <div>
+            <!-- Status Badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium mb-3">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Terbuka untuk Peluang Kerja (On-site / Hybrid • Area Bandung)</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Andrey Firmando
+            </h1>
+            <p class="text-base sm:text-lg font-semibold mt-1 bg-gradient-to-r from-cyan-600 via-indigo-600 to-emerald-600 dark:from-cyan-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent text-gradient-print">
+              Network Incident Engineer | Telecommunications &amp; Network Operations Specialist
+            </p>
+
+            <!-- Info Lokasi & LinkedIn -->
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              <span class="inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-location-dot text-cyan-500"></i>
+                Bandung, Jawa Barat, Indonesia
+              </span>
+              <a href="https://www.linkedin.com/in/andreyfmd" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-cyan-600 dark:hover:text-cyan-400 transition font-medium">
+                <i class="fa-brands fa-linkedin text-indigo-500"></i>
+                linkedin.com/in/andreyfmd
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Kontak / Salin Cepat -->
+        <div class="no-print flex flex-wrap sm:flex-nowrap md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+          <a href="https://www.linkedin.com/in/andreyfmd" target="_blank" rel="noopener noreferrer" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs sm:text-sm font-semibold hover:opacity-90 transition shadow-sm">
+            <i class="fa-brands fa-linkedin"></i>
+            <span>Hubungi di LinkedIn</span>
+          </a>
+          <button onclick="copyText('https://www.linkedin.com/in/andreyfmd', 'URL Profil LinkedIn berhasil disalin!')" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium transition">
+            <i class="fa-regular fa-copy text-cyan-500"></i>
+            <span>Salin Tautan Profil</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Highlight Metrik Singkat -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-8 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
+          <p class="font-mono text-xl sm:text-2xl font-bold text-cyan-600 dark:text-cyan-400">7+ Thn</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Pengalaman Telekomunikasi &amp; IT</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
+          <p class="font-mono text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">3 Thn 7 Bln</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Operasional Jaringan FiberStar</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
+          <p class="font-mono text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">42+</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Lisensi &amp; Sertifikasi Teknis</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
+          <p class="font-mono text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200">24/7 NOC</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Incident &amp; RAN Surveillance</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TENTANG / RINGKASAN PROFESIONAL -->
+    <section id="tentang" class="reveal glass-card rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <h2 class="text-xl font-bold tracking-tight">Ringkasan Profesional</h2>
+      </div>
+      <p class="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-300">
+        Seorang <strong class="text-slate-900 dark:text-white font-semibold">Network Incident Engineer</strong> dan profesional telekomunikasi yang berdedikasi, teliti, disiplin, dan cepat beradaptasi. Memiliki kemampuan analitis yang kuat dalam mendiagnosis serta menyelesaikan gangguan operasional jaringan guna menjaga keandalan sistem dan meminimalkan <em>downtime</em>. Terbiasa bekerja secara mandiri maupun berkolaborasi lintas tim di lingkungan operasional berkecepatan tinggi.
+      </p>
+    </section>
+
+    <!-- PENGALAMAN KERJA -->
+    <section id="pengalaman" class="reveal space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-network-wired"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Pengalaman Kerja</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Rekam jejak karier di industri telekomunikasi, infrastruktur fiber, &amp; manajemen data</p>
+          </div>
+        </div>
+
+        <!-- Filter Pengalaman -->
+        <div class="no-print flex flex-wrap gap-1.5" id="exp-filters">
+          <button data-filter="all" class="exp-filter-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-600 text-white transition">Semua (5)</button>
+          <button data-filter="network" class="exp-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition">Network &amp; NOC</button>
+          <button data-filter="data" class="exp-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition">Data &amp; Support</button>
+        </div>
+      </div>
+
+      <!-- Timeline Pengalaman -->
+      <div class="relative space-y-5 before:content-[''] before:absolute before:left-5 sm:before:left-6 before:top-4 before:bottom-4 before:w-0.5 before:bg-gradient-to-b before:from-cyan-500 before:via-indigo-500 before:to-slate-300 dark:before:to-slate-700">
+
+        <!-- 1. PT Mega Akses Persada (FiberStar) -->
+        <article data-category="network" class="exp-item reveal glass-card relative pl-12 sm:pl-16 pr-5 sm:pr-7 py-6 rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-cyan-500/50 transition">
+          <span class="absolute left-3.5 sm:left-4.5 top-7 w-3.5 h-3.5 rounded-full bg-cyan-500 ring-4 ring-cyan-500/20"></span>
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200/70 dark:border-slate-800">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">PT Mega Akses Persada (FiberStar)</h3>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                <span><i class="fa-solid fa-location-dot text-cyan-500 mr-1"></i>Jakarta, Indonesia</span>
+                <span>•</span>
+                <span class="font-mono text-cyan-600 dark:text-cyan-400 font-medium">Total 3 tahun 7 bulan</span>
+              </p>
+            </div>
+            <span class="self-start sm:self-center px-3 py-1 rounded-full text-xs font-mono font-semibold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+              Current Company
+            </span>
+          </div>
+
+          <!-- Sub-role 1A -->
+          <div class="mt-4 space-y-4">
+            <div class="relative pl-4 border-l-2 border-emerald-500">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 class="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">Network Incident Engineer</h4>
+                <span class="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-medium">Juni 2025 – Sekarang</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                Mengidentifikasi, mendiagnosis, dan menangani gangguan operasional jaringan secara cepat dan tepat untuk meminimalkan <em>downtime</em> serta menjaga performa optimal infrastruktur jaringan fiber optik.
+              </p>
+            </div>
+
+            <!-- Sub-role 1B -->
+            <div class="relative pl-4 border-l-2 border-indigo-400/70">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 class="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">Network Monitoring Officer</h4>
+                <span class="font-mono text-xs text-slate-500 dark:text-slate-400">Mei 2023 – Mei 2025</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                Melakukan pemantauan jaringan secara proaktif 24/7, analisis alarm awal, eskalasi insiden teknis, dan koordinasi pemulihan layanan bersama tim lapangan.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. Telkomsel -->
+        <article data-category="network" class="exp-item reveal glass-card relative pl-12 sm:pl-16 pr-5 sm:pr-7 py-6 rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-indigo-500/50 transition">
+          <span class="absolute left-3.5 sm:left-4.5 top-7 w-3.5 h-3.5 rounded-full bg-indigo-500 ring-4 ring-indigo-500/20"></span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">NOC RAN Surveillance</h3>
+              <p class="text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-400">Telkomsel • Jakarta, Indonesia</p>
+            </div>
+            <span class="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start sm:self-center">
+              Juli 2021 – April 2023
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+            Melakukan pemantauan dan pengawasan performa jaringan <em>Radio Access Network</em> (RAN) secara menyeluruh, serta penanganan alarm dan eskalasi insiden jaringan seluler untuk menjaga kualitas layanan pelanggan.
+          </p>
+        </article>
+
+        <!-- 3. Institut Teknologi Bandung (ITB) -->
+        <article data-category="data" class="exp-item reveal glass-card relative pl-12 sm:pl-16 pr-5 sm:pr-7 py-6 rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-emerald-500/50 transition">
+          <span class="absolute left-3.5 sm:left-4.5 top-7 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Data &amp; Information Management Assistant</h3>
+              <p class="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400">Institut Teknologi Bandung (ITB) • Bandung, Jawa Barat</p>
+            </div>
+            <span class="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start sm:self-center">
+              Februari 2021 – Desember 2021
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+            Mengumpulkan, mengorganisasi, mengelola, dan menganalisis data dosen, mahasiswa, serta sumber daya akademik secara terstruktur di lingkungan SAPPK ITB.
+          </p>
+        </article>
+
+        <!-- 4. PT Digital Amore Kriyanesia -->
+        <article data-category="network" class="exp-item reveal glass-card relative pl-12 sm:pl-16 pr-5 sm:pr-7 py-6 rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-cyan-500/50 transition">
+          <span class="absolute left-3.5 sm:left-4.5 top-7 w-3.5 h-3.5 rounded-full bg-cyan-500 ring-4 ring-cyan-500/20"></span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Network &amp; Operational</h3>
+              <p class="text-xs sm:text-sm font-medium text-cyan-600 dark:text-cyan-400">PT Digital Amore Kriyanesia • Bandung, Jawa Barat</p>
+            </div>
+            <span class="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start sm:self-center">
+              Juli 2019 – Desember 2019
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+            Mendukung kelancaran operasional harian serta pemeliharaan konektivitas dan infrastruktur jaringan internal perusahaan.
+          </p>
+        </article>
+
+        <!-- 5. Huawei -->
+        <article data-category="data" class="exp-item reveal glass-card relative pl-12 sm:pl-16 pr-5 sm:pr-7 py-6 rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-indigo-500/50 transition">
+          <span class="absolute left-3.5 sm:left-4.5 top-7 w-3.5 h-3.5 rounded-full bg-slate-400 dark:bg-slate-500 ring-4 ring-slate-400/20"></span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Helpdesk / Front Office (FO)</h3>
+              <p class="text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-400">Huawei • Jakarta, Indonesia</p>
+            </div>
+            <span class="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start sm:self-center">
+              Desember 2017 – Januari 2019
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+            Memberikan dukungan teknis garis depan, pencatatan tiket gangguan, dan pemantauan operasional layanan pada <strong>Proyek Indosat Saldo Mobo</strong>.
+          </p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- KEAHLIAN UTAMA (SKILLS) -->
+    <section id="keahlian" class="reveal glass-card rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Kompetensi &amp; Keahlian</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">34+ keahlian terverifikasi dalam operasional jaringan &amp; analisis sistem</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Kategori 1: Network & Telecom -->
+        <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70">
+          <div class="flex items-center gap-2.5 mb-4">
+            <i class="fa-solid fa-tower-broadcast text-cyan-500"></i>
+            <h3 class="font-bold text-sm sm:text-base">Network &amp; Telecommunications</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">Incident Management</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">Network Engineering</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">Network Topology</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">Network Monitoring Tools</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">NOC Operations</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">RAN Surveillance</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25">Network Troubleshooting</span>
+          </div>
+        </div>
+
+        <!-- Kategori 2: Data, Database & Tools -->
+        <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70">
+          <div class="flex items-center gap-2.5 mb-4">
+            <i class="fa-solid fa-database text-indigo-500"></i>
+            <h3 class="font-bold text-sm sm:text-base">Data, Database &amp; Analytical Tools</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">Analytical Skills</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">PL/SQL</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">DBMS</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">Microsoft Excel</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">Data Management</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border border-indigo-500/25">Root Cause Analysis</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PENDIDIKAN & SERTIFIKASI (GRID 2 KOLOM) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      
+      <!-- PENDIDIKAN -->
+      <section id="pendidikan" class="reveal glass-card rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h2 class="text-xl font-bold tracking-tight">Pendidikan</h2>
+        </div>
+
+        <div class="space-y-5">
+          <!-- S1 -->
+          <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">STT Mandala Bandung</h3>
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 shrink-0">2019 – 2022</span>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 mt-1">
+              Sarjana (S1), Teknik Elektro dan Elektronika
+            </p>
+          </div>
+
+          <!-- D3 -->
+          <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">Politeknik Negeri Bandung (POLBAN)</h3>
+              <span class="font-mono text-xs px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 shrink-0">2013 – 2016</span>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 mt-1">
+              Ahli Madya (D3), Teknik Telekomunikasi
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LISENSI & SERTIFIKASI -->
+      <section id="sertifikasi" class="reveal glass-card rounded-3xl bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+        <div class="flex items-center justify-between gap-2 mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-certificate"></i>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight">Lisensi &amp; Sertifikasi</h2>
+          </div>
+          <span class="font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+            42+ Total
+          </span>
+        </div>
+
+        <div class="space-y-3.5">
+          <!-- Sertifikasi 1 -->
+          <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">DX System Administrator Training</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Incognito Software Systems</p>
+            </div>
+            <span class="font-mono text-xs text-emerald-600 dark:text-emerald-400 shrink-0">Sep 2024</span>
+          </div>
+
+          <!-- Sertifikasi 2 -->
+          <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">Indonesia FiberStar Project Training</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Huawei</p>
+            </div>
+            <span class="font-mono text-xs text-emerald-600 dark:text-emerald-400 shrink-0">Jun 2024</span>
+          </div>
+
+          <!-- Ringkasan Sertifikasi Lainnya -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
+            <span>Serta <strong>40+ sertifikasi lainnya</strong> di bidang Network Operations, Troubleshooting &amp; Telecommunications.</span>
+            <a href="https://www.linkedin.com/in/andreyfmd" target="_blank" rel="noopener noreferrer" class="no-print font-semibold text-cyan-600 dark:text-cyan-400 hover:underline shrink-0">
+              Lihat Semua <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="no-print border-t border-slate-200/80 dark:border-slate-800/80 mt-10 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+      <p>© <span id="year"></span> <strong>Andrey Firmando</strong> — Network Incident Engineer.</p>
+      <div class="flex items-center gap-4">
+        <a href="https://www.linkedin.com/in/andreyfmd" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-500 transition">
+          <i class="fa-brands fa-linkedin mr-1"></i>LinkedIn
+        </a>
+        <button onclick="window.print()" class="hover:text-cyan-500 transition">
+          <i class="fa-solid fa-print mr-1"></i>Simpan sebagai PDF
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT INTERAKTIF -->
+  <script>
+    // Set tahun saat ini di footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 1. Toggle Dark / Light Mode
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlEl = document.documentElement;
+
+    function updateThemeIcon() {
+      if (htmlEl.classList.contains('dark')) {
+        themeIcon.className = 'fa-solid fa-sun text-amber-400';
+      } else {
+        themeIcon.className = 'fa-solid fa-moon text-indigo-600';
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      htmlEl.classList.toggle('dark');
+      updateThemeIcon();
+    });
+
+    // 2. Fungsi Salin Teks ke Clipboard + Notifikasi Toast
+    function copyText(text, message) {
+      const tempInput = document.createElement('input');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        showToast(message);
+      } catch (err) {
+        showToast('Gagal menyalin tautan.');
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    let toastTimeout;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    // 3. Filter Kategori Pengalaman Kerja
+    const filterButtons = document.querySelectorAll('.exp-filter-btn');
+    const expItems = document.querySelectorAll('.exp-item');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+
+        // Perbarui tampilan tombol aktif
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-cyan-600', 'text-white');
+          b.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        });
+        btn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        btn.classList.add('bg-cyan-600', 'text-white');
+
+        // Filter item pengalaman
+        expItems.forEach(item => {
+          const category = item.getAttribute('data-category');
+          if (filter === 'all' || category === filter) {
+            item.style.display = 'block';
+            setTimeout(() => item.classList.add('active'), 20);
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // 4. Animasi Scroll Reveal
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.08 });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+  </script>
 </body>
 </html>
